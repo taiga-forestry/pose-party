@@ -15,6 +15,9 @@ curr_player = 0
 cap = cv2.VideoCapture(0)
 frames = []
 
+screenshot = None
+
+
 if not cap.isOpened():
     raise IOError("cannot access webcam :(")
 
@@ -33,6 +36,11 @@ while True:
 
     elapsed_time = time.time() - start_time
     remaining = max(0, int(COUNTDOWN_DURATION - elapsed_time))
+
+
+    h, w, _ = frame.shape
+    left = frame[:, :w//2]
+    right = frame[:, w//2:]
 
     cv2.putText(
         img=frame,
@@ -64,16 +72,28 @@ while True:
                 thickness=2)
 
             saved_frames[curr_player] = frames # FIXME: average frames
-          
+
+            if screenshot is None:
+                print("wat")
+                screenshot = left.copy()
+        
         # save avg frame somewhere - use to compare later!
 
-    cv2.imshow("FIXME: come up with window name", frame)
+    # If screenshot is taken, use it for the left half
+    if screenshot is not None:
+        print("SDlgijsodgjasdlnas")
+        combined = cv2.hconcat([screenshot, right])
+    else:
+        combined = cv2.hconcat([left, right])
+      
+    cv2.imshow("Pose Split View", combined)
+    # cv2.imshow("FIXME: come up with window name", frame)
     
     # options:
     # - 
     # - press Q to quit
     key = cv2.waitKey(1)
-    
+
     if key & 0xFF == ord("t"):
         start_time = time.time()
     elif key & 0xFF == ord("y"):
