@@ -26,14 +26,14 @@ actions = [
         main_action=lambda: game_state.toggle_curr_player()
     ),
     TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 30, 50)
+        pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 800, 50)
     ),
     TimedAction(
         pending_action=lambda: show_countdown_timer(game_state),
         main_action=lambda: take_screenshot(game_state)
     ),
     TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 30, 50),
+        pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 800, 50),
         main_action=lambda: game_state.toggle_curr_player()
     ),
 ]

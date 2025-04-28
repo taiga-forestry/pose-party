@@ -16,8 +16,9 @@ def show_countdown_timer(game_state: DuelGameState):
     frame = game_state.last_frame
     
     # FIXME: better x, y values
-    write_text(frame, f"Current Player: {game_state.curr_player}", 30, 50)
-    write_text(frame, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", 30, 100)
+    x = 30 if game_state.curr_player is game_state.player_1 else 800
+    write_text(frame, f"Current Player: {game_state.curr_player.name}", x, 50)
+    write_text(frame, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", x, 100)
 
 def take_screenshot(game_state: DuelGameState):
     frame = game_state.last_frame
