@@ -1,6 +1,23 @@
 import cv2
 import time
 import pose_estimation
+from game import DuelGameState
+from player import Player
+
+print("===========================")
+print("Welcome to Pose Party!")
+name_1 = input("Player 1 Name: ")
+name_2 = input("Player 2 Name: ")
+player_1 = Player(id=1, name=name_1)
+player_2 = Player(id=2, name=name_2)
+players = [player_1, player_2]
+
+game_state = DuelGameState(players=players)
+
+
+
+
+
 
 # CONSTANTS
 MAX_NUM_FRAMES = 5
