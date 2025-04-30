@@ -2,7 +2,10 @@ import cv2
 
 from game import DuelGameState
 
-def write_text(frame, text, x, y):
+def write_text(game_state: DuelGameState, text, y=50, centered=False):
+    frame = game_state.last_frame
+    x = 450 if centered else (30 if game_state.curr_player is game_state.player_1 else 800)
+    
     cv2.putText(
         img=frame,
         text=text,
@@ -13,12 +16,9 @@ def write_text(frame, text, x, y):
         thickness=2)
     
 def show_countdown_timer(game_state: DuelGameState):
-    frame = game_state.last_frame
-    
     # FIXME: better x, y values
-    x = 30 if game_state.curr_player is game_state.player_1 else 800
-    write_text(frame, f"Current Player: {game_state.curr_player.name}", x, 50)
-    write_text(frame, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", x, 100)
+    write_text(game_state, f"Current Player: {game_state.curr_player.name}", 50)
+    write_text(game_state, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", 100)
 
 def take_screenshot(game_state: DuelGameState):
     frame = game_state.last_frame
