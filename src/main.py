@@ -82,8 +82,8 @@ with initialize_landmarker() as landmarker:
         if not game_state.started:
             pass
         elif game_state.is_game_ended():
+            game_state.curr_action = None
             write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
-            actions = []
 
         if game_state.curr_action is None:
             pass
@@ -118,6 +118,7 @@ with initialize_landmarker() as landmarker:
         if key & 0xFF == ord("s"):
             game_state.curr_action = actions.pop(0)
             game_state.curr_action.start_timer()
+            game_state.started = True
         elif key & 0xFF == ord("q"):
             break
 
