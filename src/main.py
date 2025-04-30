@@ -85,6 +85,10 @@ with initialize_landmarker() as landmarker:
         elif game_state.is_game_ended():
             game_state.curr_action = None
             write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
+        else:
+           color = (255, 0, 0) #BGR
+           thickness = 9
+           divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
 
         if game_state.curr_action is None:
             pass
@@ -109,13 +113,13 @@ with initialize_landmarker() as landmarker:
             player_1.screenshot if player_1.screenshot is not None else left,
             player_2.screenshot if player_2.screenshot is not None else right,
         ])
-        cv2.imshow("Pose Party Screen", display)
 
         # add divider in middle of screen
-        if game_state.started:
-           color = (255, 0, 0) #BGR
-           thickness = 9
-           divider = cv2.line(frame, (w//2, 0), (w//2, h), color, thickness)
+        # if game_state.started:
+        #    color = (255, 0, 0) #BGR
+        #    thickness = 9
+
+        cv2.imshow("Pose Party Screen", display)
 
         # AVAILABLE KEYBOARD INTERACTIONS:
         # - press S to start the game
