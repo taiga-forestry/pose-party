@@ -4,7 +4,7 @@ from player import Player
 from dataclasses import dataclass, field
 from cv2.typing import MatLike
 
-NUM_ROUNDS = 3
+NUM_ROUNDS = 1
 
 # NOTE: player_1 will always be left side of screen, and player_2 right side
 @dataclass
@@ -33,3 +33,6 @@ class DuelGameState:
     
     def swap_players(self):
         self.lead_player, self.follow_player = self.follow_player, self.lead_player
+        self.curr_player = self.lead_player
+        if self.lead_player is self.player_1:
+            self.round += 1

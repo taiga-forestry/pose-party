@@ -13,33 +13,60 @@ player_1 = Player(id=1, name=name_1)
 player_2 = Player(id=2, name=name_2)
 
 game_state = DuelGameState(player_1=player_1, player_2=player_2)
-actions = [
-    TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 30, 50)
-    ),
-    TimedAction(
-        pending_action=lambda: show_countdown_timer(game_state),
-        main_action=lambda: take_screenshot(game_state)
-    ),
-    TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 30, 50),
-        main_action=lambda: game_state.toggle_curr_player()
-    ),
-    TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 800, 50)
-    ),
-    TimedAction(
-        pending_action=lambda: show_countdown_timer(game_state),
-        main_action=lambda: take_screenshot(game_state)
-    ),
-    TimedAction(
-        pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 800, 50),
-        main_action=lambda: game_state.toggle_curr_player()
-    ),
-]
+
+def get_round_actions():
+    return [
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 30, 50)
+        ),
+        TimedAction(
+            # TODO the countdown should start from 3s not 2s so maybe add a second
+            pending_action=lambda: show_countdown_timer(game_state),
+            main_action=lambda: take_screenshot(game_state)
+        ),
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 30, 50),
+            main_action=lambda: game_state.toggle_curr_player()
+        ),
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 800, 50)
+        ),
+        TimedAction(
+            pending_action=lambda: show_countdown_timer(game_state),
+            main_action=lambda: take_screenshot(game_state)
+        ),
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 800, 50),
+            main_action=lambda: reset_screenshots()
+            # TODO claire - change this to either let have the text write over the screenshots or merge the screenshots
+            # but for now we just reset the screenshots so they aren't in the way
+        ),
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, "Accuracy = 85%!", 400, 300), # TODO change to actual accuracy
+            main_action=lambda: game_state.swap_players()
+        ),
+        TimedAction(
+            pending_action=lambda: write_text(game_state.last_frame, f"Now it's {game_state.curr_player.name}'s turn!", 400, 300),
+            main_action=lambda: reset_for_next_turn()
+        ),
+    ]
   
+actions = get_round_actions()
+
+def reset_screenshots():
+    player_1.screenshot = None
+    player_2.screenshot = None
+
+# Helper function to reset screenshots
+# TODO: Save pics from rounds somewhere to display in recap
+def reset_for_next_turn():
+    reset_screenshots()
+    if not game_state.is_game_ended():
+        global actions
+        actions = get_round_actions()
+
 with initialize_landmarker() as landmarker:
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
 
     while cap.isOpened():
         success, frame = cap.read()
@@ -55,7 +82,8 @@ with initialize_landmarker() as landmarker:
         if not game_state.started:
             pass
         elif game_state.is_game_ended():
-            pass
+            write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
+            actions = []
 
         if game_state.curr_action is None:
             pass
@@ -68,7 +96,8 @@ with initialize_landmarker() as landmarker:
                 game_state.curr_action = actions.pop(0)
                 game_state.curr_action.start_timer()
             else:
-                game_state.round += 1
+                write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
+
         else:
             game_state.curr_action.pending_action()
 
