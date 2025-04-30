@@ -30,3 +30,9 @@ def take_screenshot(game_state: DuelGameState):
         game_state.player_1.screenshot = left
     else:
         game_state.player_2.screenshot = right
+
+def center_text_x(frame, text):
+   text_size = cv2.getTextSize(text, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=2)[0]
+   frame_center_x = frame.shape[1] // 2
+   text_x = frame_center_x - text_size[0] // 2
+   return text_x

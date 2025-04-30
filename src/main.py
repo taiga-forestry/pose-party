@@ -3,7 +3,7 @@ from pose_estimation import initialize_landmarker, get_and_draw_joints
 from action import TimedAction
 from game import DuelGameState
 from player import Player
-from util import write_text, show_countdown_timer, take_screenshot
+from util import write_text, show_countdown_timer, take_screenshot, center_text_x
 
 print("===========================")
 print("Welcome to Pose Party!")
@@ -70,6 +70,7 @@ with initialize_landmarker() as landmarker:
 
     while cap.isOpened():
         success, frame = cap.read()
+        h, w, _ = frame.shape
 
         if not success:
             raise ValueError("video capture failed :(")
@@ -80,7 +81,7 @@ with initialize_landmarker() as landmarker:
         
         # display loading screen / ending screen
         if not game_state.started:
-            pass
+            write_text(game_state.last_frame, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
         elif game_state.is_game_ended():
             game_state.curr_action = None
             write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
@@ -101,7 +102,7 @@ with initialize_landmarker() as landmarker:
         else:
             game_state.curr_action.pending_action()
 
-        h, w, _ = frame.shape
+        #h, w, _ = frame.shape
         left = frame[:, :w//2]
         right = frame[:, w//2:]
         display = cv2.hconcat([
@@ -109,6 +110,12 @@ with initialize_landmarker() as landmarker:
             player_2.screenshot if player_2.screenshot is not None else right,
         ])
         cv2.imshow("Pose Party Screen", display)
+
+        # add divider in middle of screen
+        if game_state.started:
+           color = (255, 0, 0) #BGR
+           thickness = 9
+           divider = cv2.line(frame, (w//2, 0), (w//2, h), color, thickness)
 
         # AVAILABLE KEYBOARD INTERACTIONS:
         # - press S to start the game
