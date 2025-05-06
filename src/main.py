@@ -1,9 +1,11 @@
 import cv2
 from pose_estimation import initialize_landmarker, get_and_draw_joints
+from pose_matching import cosine_distance, distance_to_percentage
 from action import TimedAction
 from game import DuelGameState
 from player import Player
 from util import write_text, show_countdown_timer, take_screenshot
+from collections import defaultdict
 
 print("===========================")
 print("Welcome to Pose Party!")
@@ -22,7 +24,7 @@ def get_round_actions():
         TimedAction(
             # TODO the countdown should start from 3s not 2s so maybe add a second
             pending_action=lambda: show_countdown_timer(game_state),
-            main_action=lambda: take_screenshot(game_state)
+            main_action=lambda: take_screenshot(game_state),
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 30, 50),
@@ -64,9 +66,13 @@ def reset_for_next_turn():
     if not game_state.is_game_ended():
         global actions
         actions = get_round_actions()
+    print(game_state.saved_frame)
+    score = distance_to_percentage(cosine_distance(game_state.saved_frame[0], game_state.saved_frame[1]))
+    print(score)
+    game_state.saved_frame = [defaultdict(dict), defaultdict(dict)]
 
 with initialize_landmarker() as landmarker:
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
         success, frame = cap.read()
@@ -76,8 +82,7 @@ with initialize_landmarker() as landmarker:
         
         frame = cv2.flip(frame, 1) # flip everything to be mirrored!
         game_state.last_frame = frame
-        get_and_draw_joints(landmarker, frame)
-        
+        get_and_draw_joints(landmarker, frame, game_state)        
         # display loading screen / ending screen
         if not game_state.started:
             pass

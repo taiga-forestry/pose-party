@@ -4,7 +4,6 @@ def flatten_joints(joints, joint_keys):
     flattened = []
     mask = []
 
-    # Use shoulders as the center
     left_shoulder = joints.get("pose_11")
     right_shoulder = joints.get("pose_12")
 
@@ -28,10 +27,11 @@ def flatten_joints(joints, joint_keys):
     return np.array(flattened, dtype=np.float32), np.array(mask, dtype=np.float32)
 
 def cosine_distance(joints1, joints2):
+    print(joints1.keys(), joints2.keys())
     joint_keys = set(joints1.keys()).intersection(joints2.keys())
     if not joint_keys:
         print("1")
-        return 1.0  # No common joints
+        return 1.0
 
     pose1, mask1 = flatten_joints(joints1, joint_keys)
     pose2, mask2 = flatten_joints(joints2, joint_keys)
@@ -58,6 +58,3 @@ def cosine_distance(joints1, joints2):
 
     cosine_sim = np.dot(pose1, pose2) / (norm1 * norm2)
     return 1 - cosine_sim
-
-def distance_to_percentage(distance):
-    return (1 - distance) * 100

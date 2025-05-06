@@ -1,4 +1,5 @@
 import cv2
+from pose_estimation import get_and_save_joints, initialize_landmarker
 
 from game import DuelGameState
 
@@ -30,3 +31,9 @@ def take_screenshot(game_state: DuelGameState):
         game_state.player_1.screenshot = left
     else:
         game_state.player_2.screenshot = right
+
+
+    print("screenshot", game_state.curr_player.id)
+    get_and_save_joints(initialize_landmarker(), frame, game_state)
+    print(game_state.saved_frame)
+
