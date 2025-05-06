@@ -1,4 +1,5 @@
 import cv2
+from pose_estimation import get_and_save_joints, initialize_landmarker
 
 from game import DuelGameState
 
@@ -30,6 +31,8 @@ def take_screenshot(game_state: DuelGameState):
         game_state.player_1.screenshot = left
     else:
         game_state.player_2.screenshot = right
+
+    get_and_save_joints(initialize_landmarker(), frame, game_state)
 
 def center_text_x(frame, text):
    text_size = cv2.getTextSize(text, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=2)[0]

@@ -3,6 +3,7 @@ from typing import Union
 from player import Player
 from dataclasses import dataclass, field
 from cv2.typing import MatLike
+from collections import defaultdict
 
 NUM_ROUNDS = 1
 
@@ -19,6 +20,7 @@ class DuelGameState:
     curr_action: Union[TimedAction, None] = None
     # history: list[list[]]
     last_frame: Union[MatLike, None] = None
+    saved_frame = [defaultdict(dict), defaultdict(dict)]
 
     def __post_init__(self):
         self.lead_player = self.player_1
