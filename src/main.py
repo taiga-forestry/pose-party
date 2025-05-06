@@ -19,7 +19,7 @@ game_state = DuelGameState(player_1=player_1, player_2=player_2)
 def get_round_actions():
     return [
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 30, 50)
+            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.id}, Get Ready...")
         ),
         TimedAction(
             # TODO the countdown should start from 3s not 2s so maybe add a second
@@ -27,28 +27,28 @@ def get_round_actions():
             main_action=lambda: take_screenshot(game_state),
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 30, 50),
+            pending_action=lambda: write_text(game_state, f"Screenshot saved!"),
             main_action=lambda: game_state.toggle_curr_player()
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, f"Player {game_state.curr_player.id}, Get Ready...", 800, 50)
+            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.id}, Get Ready...")
         ),
         TimedAction(
             pending_action=lambda: show_countdown_timer(game_state),
             main_action=lambda: take_screenshot(game_state)
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, f"Screenshot saved!", 800, 50),
+            pending_action=lambda: write_text(game_state, f"Screenshot saved!"),
             main_action=lambda: reset_screenshots()
             # TODO claire - change this to either let have the text write over the screenshots or merge the screenshots
             # but for now we just reset the screenshots so they aren't in the way
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, "Accuracy = 85%!", 400, 300), # TODO change to actual accuracy
+            pending_action=lambda: write_text(game_state, "Accuracy = 85%!", y=300, centered=True), # TODO change to actual accuracy
             main_action=lambda: game_state.swap_players()
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state.last_frame, f"Now it's {game_state.curr_player.name}'s turn!", 400, 300),
+            pending_action=lambda: write_text(game_state, f"Now it's {game_state.curr_player.name}'s turn!", y=300, centered=True),
             main_action=lambda: reset_for_next_turn()
         ),
     ]
@@ -76,6 +76,7 @@ with initialize_landmarker() as landmarker:
 
     while cap.isOpened():
         success, frame = cap.read()
+        h, w, _ = frame.shape
 
         if not success:
             raise ValueError("video capture failed :(")
@@ -85,10 +86,14 @@ with initialize_landmarker() as landmarker:
         get_and_draw_joints(landmarker, frame, game_state)        
         # display loading screen / ending screen
         if not game_state.started:
-            pass
+            write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
         elif game_state.is_game_ended():
-            write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
-            actions = []
+            game_state.curr_action = None
+            write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
+        else:
+           color = (255, 0, 0) #BGR
+           thickness = 9
+           divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
 
         if game_state.curr_action is None:
             pass
@@ -101,18 +106,24 @@ with initialize_landmarker() as landmarker:
                 game_state.curr_action = actions.pop(0)
                 game_state.curr_action.start_timer()
             else:
-                write_text(game_state.last_frame, f"GAME OVER! {game_state.curr_player.id} WINS", 400, 50) # TODO change to actual winner
+                write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
 
         else:
             game_state.curr_action.pending_action()
 
-        h, w, _ = frame.shape
+        #h, w, _ = frame.shape
         left = frame[:, :w//2]
         right = frame[:, w//2:]
         display = cv2.hconcat([
             player_1.screenshot if player_1.screenshot is not None else left,
             player_2.screenshot if player_2.screenshot is not None else right,
         ])
+
+        # add divider in middle of screen
+        # if game_state.started:
+        #    color = (255, 0, 0) #BGR
+        #    thickness = 9
+
         cv2.imshow("Pose Party Screen", display)
 
         # AVAILABLE KEYBOARD INTERACTIONS:
@@ -123,6 +134,7 @@ with initialize_landmarker() as landmarker:
         if key & 0xFF == ord("s"):
             game_state.curr_action = actions.pop(0)
             game_state.curr_action.start_timer()
+            game_state.started = True
         elif key & 0xFF == ord("q"):
             break
 

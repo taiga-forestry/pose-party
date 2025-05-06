@@ -34,6 +34,7 @@ class DuelGameState:
         self.curr_player = self.follow_player if self.curr_player is self.lead_player else self.lead_player
     
     def swap_players(self):
+        print("CHANGING TURNS")
         self.lead_player, self.follow_player = self.follow_player, self.lead_player
         self.curr_player = self.lead_player
         if self.lead_player is self.player_1:
