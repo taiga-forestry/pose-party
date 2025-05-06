@@ -4,7 +4,7 @@ from pose_matching import cosine_distance, distance_to_percentage
 from action import TimedAction
 from game import DuelGameState
 from player import Player
-from util import write_text, show_countdown_timer, take_screenshot
+from util import center_text_x, write_text, show_countdown_timer, take_screenshot
 from collections import defaultdict
 
 print("===========================")
