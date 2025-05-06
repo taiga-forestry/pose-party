@@ -81,7 +81,7 @@ with initialize_landmarker() as landmarker:
         
         # display loading screen / ending screen
         if not game_state.started:
-            write_text(game_state.last_frame, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
+            write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
         elif game_state.is_game_ended():
             game_state.curr_action = None
             write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
