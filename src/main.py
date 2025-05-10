@@ -90,7 +90,7 @@ with initialize_landmarker() as landmarker:
             raise ValueError("video capture failed :(")
         
         frame = cv2.flip(frame, 1) # flip everything to be mirrored!
-        #game_state.last_frame = frame
+        game_state.last_frame = frame
         get_and_draw_joints(landmarker, frame, game_state)
 
 
@@ -132,14 +132,8 @@ with initialize_landmarker() as landmarker:
             player_1.screenshot if player_1.screenshot is not None else left,
             player_2.screenshot if player_2.screenshot is not None else right,
         ])
-        
-        if not game_state.paused:
-            game_state.last_frame = frame
-            cv2.imshow("Pose Party Screen", display)
-        else:
-            paused_display = game_state.last_frame.copy()
-            write_text(game_state, f"GAME PAUSED", center_text_x(paused_display, "GAME PAUSED"), 150, frame=paused_display)
-            cv2.imshow("Pose Party Screen", paused_display)
+
+        cv2.imshow("Pose Party Screen", display)
 
 
         # AVAILABLE KEYBOARD INTERACTIONS:
@@ -152,30 +146,14 @@ with initialize_landmarker() as landmarker:
             game_state.curr_action.start_timer()
             game_state.started = True
         elif key & 0xFF == ord("r"):
-
             # go back to starting screen
             if game_state.started:
-
-                cv2.waitKey(0)
                 print("reset")
                 game_state = DuelGameState(player_1=player_1, player_2=player_2)
                 actions = get_round_actions()
                 game_state.started = False
                 write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
-        
 
-            # should we do a check for if they actually want to reset? like a yes/no
-        elif key & 0xFF == ord("p"):
-            game_state.paused = not game_state.paused
-
-            print("game paused: ", game_state.paused)
-            if game_state.paused:
-                print("making copy of display")
-                game_state.last_frame = display.copy()
-            
-            
-        # should there be a pause feature? p for pause/unpause
-        # pause field
         elif key & 0xFF == ord("q"):
             break
 

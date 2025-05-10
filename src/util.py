@@ -3,9 +3,8 @@ from pose_estimation import get_and_save_joints, initialize_landmarker
 
 from game import DuelGameState
 
-def write_text(game_state: DuelGameState, text, y=50, centered=False, frame=None):
-    if frame is None:
-        frame = game_state.last_frame
+def write_text(game_state: DuelGameState, text, y=50, centered=False):
+    frame = game_state.last_frame
     x = 450 if centered else (30 if game_state.curr_player is game_state.player_1 else 800)
     
     cv2.putText(
