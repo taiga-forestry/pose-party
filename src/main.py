@@ -95,7 +95,7 @@ def reset_for_next_turn():
 
 
 with initialize_landmarker() as landmarker:
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
         success, frame = cap.read()
