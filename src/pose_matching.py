@@ -15,6 +15,8 @@ SELECTED_JOINTS = set([
     31, 32,  # feet
 ])
 
+CONFIDENCE_THRESHOLD = 0.8
+
 def calculate_similarity(game_state, should_log=False):
     joints1, joints2 = game_state.player_1.saved_joints, game_state.player_2.saved_joints
 
@@ -54,7 +56,7 @@ def calculate_similarity(game_state, should_log=False):
     def find_center(joints):
         l_shoulder, r_shoulder = joints[11], joints[12]
 
-        if l_shoulder[3] < 0.98 or r_shoulder[3] < 0.98:
+        if l_shoulder[3] < CONFIDENCE_THRESHOLD or r_shoulder[3] < CONFIDENCE_THRESHOLD:
             raise ValueError("wat")
         
         center_x, center_y = (l_shoulder[0] + r_shoulder[0]) / 2, (l_shoulder[1] + r_shoulder[1]) / 2
@@ -70,7 +72,7 @@ def calculate_similarity(game_state, should_log=False):
 
     valid_indices = [
         i for i in SELECTED_JOINTS
-        if joints1[i][3] > 0.98 and joints2[i][3] > 0.98
+        if joints1[i][3] > CONFIDENCE_THRESHOLD and joints2[i][3] > CONFIDENCE_THRESHOLD
     ]
 
     if not valid_indices:
@@ -87,6 +89,9 @@ def calculate_similarity(game_state, should_log=False):
 
     if not should_log:
         return score
+    
+    if len(valid_indices) < 5:
+        score -= 50
 
     with open(f"scores-{game_state.round}-{game_state.t}.txt", "w") as f:
         f.write(f"center1: {p1_center}\n")

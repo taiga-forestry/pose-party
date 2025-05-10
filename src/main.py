@@ -10,8 +10,8 @@ from collections import defaultdict
 
 print("===========================")
 print("Welcome to Pose Party!")
-name_1 = "TIGER" #input("Player 1 Name: ")
-name_2 = "CLAIRE" #input("Player 2 Name: ")
+name_1 = input("Player 1 Name: ")
+name_2 = input("Player 2 Name: ")
 player_1 = Player(id=1, name=name_1)
 player_2 = Player(id=2, name=name_2)
 
@@ -45,7 +45,7 @@ def get_round_actions():
             # but for now we just reset the screenshots so they aren't in the way
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state, f"Accuracy = {print_score()}", y=300, centered=True), # TODO change to actual accuracy
+            pending_action=lambda: write_text(game_state, f"Accuracy = {print_score():.3f}", y=300, centered=True), # TODO change to actual accuracy
             main_action=lambda: game_state.swap_players()
         ),
         TimedAction(
@@ -95,7 +95,7 @@ def reset_for_next_turn():
 
 
 with initialize_landmarker() as landmarker:
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
 
     while cap.isOpened():
         success, frame = cap.read()
