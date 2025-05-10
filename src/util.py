@@ -38,11 +38,12 @@ def take_screenshot(game_state: DuelGameState):
     # get_and_save_joints(initialize_landmarker(), frame, game_state)
 
 def save_screenshot(game_state: DuelGameState, frame):
+    confidence_threshold = 0.8
     cv2.imwrite(f"screenshot-{game_state.curr_player.name}-{game_state.round}-{game_state.t}.png", frame)
 
     with open(f"joints-{game_state.curr_player.name}-{game_state.round}-{game_state.t}.txt", "w") as f:
         for i, (x, y, z, visibility) in enumerate(game_state.curr_player.saved_joints):
-            if visibility > 0.98:
+            if visibility > confidence_threshold: 
                 f.write(f"{i}: ({x}, {y}, {z} | viz: {visibility})\n")
             else:
                 f.write(f"{i}: --- | viz: {visibility}\n")
