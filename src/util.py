@@ -29,10 +29,26 @@ def take_screenshot(game_state: DuelGameState):
 
     if game_state.curr_player == game_state.player_1:
         game_state.player_1.screenshot = left
+        game_state.player_1.saved_joints = [joints for joints in game_state.player_joints.values() if joints[0][0] < 0.5][0]
     else:
         game_state.player_2.screenshot = right
+        game_state.player_2.saved_joints = [joints for joints in game_state.player_joints.values() if joints[0][0] > 0.5][0]
 
-    get_and_save_joints(initialize_landmarker(), frame, game_state)
+    save_screenshot(game_state, frame)
+    # get_and_save_joints(initialize_landmarker(), frame, game_state)
+
+def save_screenshot(game_state: DuelGameState, frame):
+    confidence_threshold = 0.8
+    cv2.imwrite(f"screenshot-{game_state.curr_player.name}-{game_state.round}-{game_state.t}.png", frame)
+
+    with open(f"joints-{game_state.curr_player.name}-{game_state.round}-{game_state.t}.txt", "w") as f:
+        for i, (x, y, z, visibility) in enumerate(game_state.curr_player.saved_joints):
+            if visibility > confidence_threshold: 
+                f.write(f"{i}: ({x}, {y}, {z} | viz: {visibility})\n")
+            else:
+                f.write(f"{i}: --- | viz: {visibility}\n")
+
+    game_state.t += 1
 
 def center_text_x(frame, text):
    text_size = cv2.getTextSize(text, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=2)[0]
