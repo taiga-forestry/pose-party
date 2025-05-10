@@ -1,6 +1,7 @@
 import cv2
 from pose_estimation import initialize_landmarker, get_and_draw_joints
-from pose_matching import cosine_distance, distance_to_percentage
+# from pose_matching import cosine_distance, distance_to_percentage
+from pose_matching import calculate_similarity
 from action import TimedAction
 from game import DuelGameState
 from player import Player
@@ -39,12 +40,12 @@ def get_round_actions():
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state, f"Screenshot saved!"),
-            main_action=lambda: reset_screenshots()
+            main_action=lambda: save_results()
             # TODO claire - change this to either let have the text write over the screenshots or merge the screenshots
             # but for now we just reset the screenshots so they aren't in the way
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state, "Accuracy = 85%!", y=300, centered=True), # TODO change to actual accuracy
+            pending_action=lambda: write_text(game_state, f"Accuracy = {print_score()}", y=300, centered=True), # TODO change to actual accuracy
             main_action=lambda: game_state.swap_players()
         ),
         TimedAction(
@@ -55,21 +56,43 @@ def get_round_actions():
   
 actions = get_round_actions()
 
-def reset_screenshots():
+def print_score():
+    similarity = calculate_similarity(game_state)
+
+    # with open(f"scores-{game_state.round}-{game_state.t}.txt", "w") as f:
+    #     f.write(f"dist: {distance}")
+    #     f.write(f"score: {score}")
+
+    return similarity
+
+def save_results():
+    if player_1.screenshot is not None and player_2.screenshot is not None:
+        left = player_1.screenshot
+        right = player_2.screenshot
+        frame = cv2.hconcat([left, right])
+        cv2.imwrite(f"{game_state.round}-{game_state.t}-screenshot.png", frame)
+        calculate_similarity(game_state, should_log=True)
+        game_state.t += 1
+
     player_1.screenshot = None
     player_2.screenshot = None
 
 # Helper function to reset screenshots
 # TODO: Save pics from rounds somewhere to display in recap
 def reset_for_next_turn():
-    reset_screenshots()
+    save_results()
     if not game_state.is_game_ended():
         global actions
         actions = get_round_actions()
-    print(game_state.saved_frame)
-    score = distance_to_percentage(cosine_distance(game_state.saved_frame[0], game_state.saved_frame[1]))
-    print(score)
-    game_state.saved_frame = [defaultdict(dict), defaultdict(dict)]
+    # print(game_state.saved_frame)
+    # score = distance_to_percentage(cosine_distance(game_state.saved_frame[0], game_state.saved_frame[1]))
+    # print(score)
+    # game_state.saved_frame = [defaultdict(dict), defaultdict(dict)]
+    player_1.screenshot = None
+    player_2.screenshot = None
+    game_state.player_1.saved_joints = None
+    game_state.player_2.saved_joints = None
+
 
 with initialize_landmarker() as landmarker:
     cap = cv2.VideoCapture(0)
@@ -83,7 +106,9 @@ with initialize_landmarker() as landmarker:
         
         frame = cv2.flip(frame, 1) # flip everything to be mirrored!
         game_state.last_frame = frame
-        get_and_draw_joints(landmarker, frame, game_state)        
+        player_joints = get_and_draw_joints(landmarker, frame, game_state)
+        game_state.player_joints = player_joints
+       
         # display loading screen / ending screen
         if not game_state.started:
             write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
@@ -107,7 +132,6 @@ with initialize_landmarker() as landmarker:
                 game_state.curr_action.start_timer()
             else:
                 write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
-
         else:
             game_state.curr_action.pending_action()
 

@@ -8,4 +8,5 @@ class Player:
   name: str
   score: float = 0.0
   screenshot: Union[MatLike, None] = None
+  saved_joints = None
   

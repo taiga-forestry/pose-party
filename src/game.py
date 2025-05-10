@@ -20,7 +20,9 @@ class DuelGameState:
     curr_action: Union[TimedAction, None] = None
     # history: list[list[]]
     last_frame: Union[MatLike, None] = None
-    saved_frame = [defaultdict(dict), defaultdict(dict)]
+    # saved_frame = [defaultdict(dict), defaultdict(dict)]
+    player_joints = None
+    t = 1
 
     def __post_init__(self):
         self.lead_player = self.player_1
