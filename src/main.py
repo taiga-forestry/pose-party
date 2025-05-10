@@ -14,6 +14,7 @@ name_1 = input("Player 1 Name: ")
 name_2 = input("Player 2 Name: ")
 player_1 = Player(id=0, name=name_1)
 player_2 = Player(id=1, name=name_2)
+won = False
 
 game_state = DuelGameState(player_1=player_1, player_2=player_2)
 
@@ -46,7 +47,7 @@ def get_round_actions():
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state, f"Accuracy = {print_score():.3f}", y=300, centered=True), # TODO change to actual accuracy
-            main_action=lambda: game_state.swap_players()
+            main_action=lambda: save_score_and_swap_players()
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state, f"Now it's {game_state.curr_player.name}'s turn!", y=300, centered=True),
@@ -55,6 +56,11 @@ def get_round_actions():
     ]
   
 actions = get_round_actions()
+
+def save_score_and_swap_players():
+    print(print_score(), game_state.curr_player.name)
+    game_state.score[game_state.curr_player.id] += print_score()
+    game_state.swap_players()
 
 def print_score():
     similarity = calculate_similarity(game_state)
@@ -76,17 +82,17 @@ def save_results(player1, player2):
 
     player_1.screenshot = None
     player_2.screenshot = None
-    if game_state.score[0] and game_state.score[1]:
+    if game_state.score[0] != 0 and game_state.score[1] != 0:
+        print(game_state.score[0], game_state.score[1])
         if player1 is game_state.curr_player:
             game_state.score[0] += 1
         elif player2 is game_state.curr_player:
             game_state.score[1] += 1
-        game_state.score = [None, None]
 
 # Helper function to reset screenshots
 # TODO: Save pics from rounds somewhere to display in recap
 def reset_for_next_turn():
-    save_results()
+    save_results(game_state.player_1, game_state.player_2)
     if not game_state.is_game_ended():
         global actions
         actions = get_round_actions()
@@ -118,15 +124,19 @@ with initialize_landmarker() as landmarker:
         # display loading screen / ending screen
         if not game_state.started:
             write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
-        elif game_state.is_game_ended():
+        elif game_state.is_game_ended() and not won:
             game_state.curr_action = None
             winner = game_state.player_1 if game_state.score[0] > game_state.score[1] else game_state.player_2
             write_text(game_state, f"GAME OVER! {winner.name} WINS", y=50, centered=True) # TODO change to actual winner
+            print(winner.name)
+            won = True
+            game_state.score = [0, 0]
+
         else:
            color = (255, 0, 0) #BGR
            thickness = 9
            divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
-           write_text(game_state, f"{game_state.curr_player.name} Score " + game_state.curr_player.score, y=50, centered=True) # TODO change to actual winner
+           write_text(game_state, f"{game_state.curr_player.name} Score " + str(game_state.curr_player.score), y=50, centered=True) # TODO change to actual winner
 
         if game_state.curr_action is None:
             pass

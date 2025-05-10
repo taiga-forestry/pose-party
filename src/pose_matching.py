@@ -3,7 +3,7 @@ from scipy.spatial.distance import cosine
 
 # Chosen joints
 
-SELECTED_JOINTS = set([
+SELECTED_JOINTS = [
     0,       # nose
     11, 12,  # shoulders
     13, 14,  # elbows
@@ -13,9 +13,7 @@ SELECTED_JOINTS = set([
     28, 29,  # ankles
     29, 30,  # heels
     31, 32,  # feet
-])
-
-CONFIDENCE_THRESHOLD = 0.8
+]
 
 def calculate_similarity(game_state, should_log=False):
     joints1, joints2 = game_state.player_1.saved_joints, game_state.player_2.saved_joints
@@ -56,7 +54,7 @@ def calculate_similarity(game_state, should_log=False):
     def find_center(joints):
         l_shoulder, r_shoulder = joints[11], joints[12]
 
-        if l_shoulder[3] < CONFIDENCE_THRESHOLD or r_shoulder[3] < CONFIDENCE_THRESHOLD:
+        if l_shoulder[3] < 0.85 or r_shoulder[3] < 0.85:
             raise ValueError("wat")
         
         center_x, center_y = (l_shoulder[0] + r_shoulder[0]) / 2, (l_shoulder[1] + r_shoulder[1]) / 2
@@ -72,7 +70,7 @@ def calculate_similarity(game_state, should_log=False):
 
     valid_indices = [
         i for i in SELECTED_JOINTS
-        if joints1[i][3] > CONFIDENCE_THRESHOLD and joints2[i][3] > CONFIDENCE_THRESHOLD
+        if joints1[i][3] > 0.85 and joints2[i][3] > 0.85
     ]
 
     if not valid_indices:
@@ -81,17 +79,21 @@ def calculate_similarity(game_state, should_log=False):
     vec1 = np.array([joints1[i][:2] for i in valid_indices])
     vec2 = np.array([(joints2[i][0] - dx, joints2[i][1]) for i in valid_indices])
 
+    distances = np.linalg.norm(vec1 - vec2, axis=1)
+    mean_distance = np.mean(distances)
+    d = mean_distance
+    d0 = 0.22
+    k = 22
+    score = 100 / (1 + np.exp(k * (d - d0)))
+
     # Compute cosine distance
     # distance = cosine(vec1, vec2)
-    similarities = [1 - cosine(v1, v2) for v1, v2 in zip(vec1, vec2)]
-    mean_similarity = np.mean(similarities)
-    score = max(0, 100 * (mean_similarity ** 10)) # max(0, 100 * mean_similarity)
+    # similarities = [1 - cosine(v1, v2) for v1, v2 in zip(vec1, vec2)]
+    # mean_similarity = np.mean(similarities)
+    # score = max(0, 100 * (mean_similarity ** 10)) # max(0, 100 * mean_similarity)
 
     if not should_log:
         return score
-    
-    if len(valid_indices) < 5:
-        score -= 50
 
     with open(f"scores-{game_state.round}-{game_state.t}.txt", "w") as f:
         f.write(f"center1: {p1_center}\n")
@@ -109,90 +111,8 @@ def calculate_similarity(game_state, should_log=False):
         for x,y in vec2:
             f.write(f"({x}, {y})\n")
 
-        f.write(f"similarity: {mean_similarity}\n")
+        # f.write(f"similarity: {mean_similarity}\n")
+        f.write(f"dist: {mean_distance}\n")
         f.write(f"score: {score}\n")
     
     return score
-
-
-# import numpy as np
-
-# SELECTED_JOINTS = set([
-#     0,       # nose
-#     11, 12,  # shoulders
-#     13, 14,  # elbows
-#     15, 16,  # wrists
-#     23, 24,  # hips
-#     25, 26,  # knees
-#     28, 29,  # ankles
-#     29, 30,  # heels
-#     31, 32,  # feet
-# ])
-
-# def calculate_similarity(joints1, joints2):
-#     joints1 = [j for j in joints1]
-#     joints1 = [j for j in joints2]
-
-    
-
-# def flatten_joints(joints, joint_keys):
-#     flattened = []
-#     mask = []
-
-#     # Use shoulders as the center
-#     left_shoulder = joints.get("pose_11")
-#     right_shoulder = joints.get("pose_12")
-
-#     if left_shoulder and right_shoulder:
-#         center_x = (left_shoulder['x'] + right_shoulder['x']) / 2
-#         center_y = (left_shoulder['y'] + right_shoulder['y']) / 2
-#     else:
-#         center_x, center_y = 0, 0
-
-#     for key in sorted(joint_keys):
-#         joint = joints.get(key)
-#         if joint is None:
-#             flattened.extend([0, 0])
-#             mask.append(0)
-#         else:
-#             shifted_x = joint['x'] - center_x
-#             shifted_y = joint['y'] - center_y
-#             flattened.extend([shifted_x, shifted_y])
-#             mask.append(1)
-
-#     return np.array(flattened, dtype=np.float32), np.array(mask, dtype=np.float32)
-
-# def cosine_distance(joints1, joints2):
-#     joint_keys = set(joints1.keys()).intersection(joints2.keys())
-#     if not joint_keys:
-#         print("1")
-#         return 1.0  # No common joints
-
-#     pose1, mask1 = flatten_joints(joints1, joint_keys)
-#     pose2, mask2 = flatten_joints(joints2, joint_keys)
-
-#     # Apply mask to both poses
-#     # Apply mask to both poses
-#     mask = mask1 * mask2
-#     if np.sum(mask) == 0:
-#         print("2")
-#         return 1.0  # No valid joints
-
-#     # Expand mask to match the shape of the flattened pose arrays
-#     expanded_mask = np.repeat(mask, 2)
-
-#     pose1 *= expanded_mask
-#     pose2 *= expanded_mask
-
-#     norm1 = np.linalg.norm(pose1)
-#     norm2 = np.linalg.norm(pose2)
-
-#     if norm1 == 0 or norm2 == 0:
-#         print("3")
-#         return 1.0  # Avoid division by zero
-
-#     cosine_sim = np.dot(pose1, pose2) / (norm1 * norm2)
-#     return 1 - cosine_sim
-
-# def distance_to_percentage(distance):
-#     return (1 - distance) * 100

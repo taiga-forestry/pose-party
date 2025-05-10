@@ -23,7 +23,7 @@ class DuelGameState:
     # saved_frame = [defaultdict(dict), defaultdict(dict)]
     player_joints = None
     t = 1
-    score = [None, None]
+    score = [0,0]
 
     def __post_init__(self):
         self.lead_player = self.player_1
