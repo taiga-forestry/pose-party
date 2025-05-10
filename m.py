@@ -29,7 +29,7 @@ players = ["Tiger", "Claire"]
 saved_frames = [None, None]
 curr_player = 0
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 frames = []
 
 screenshot = None

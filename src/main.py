@@ -12,15 +12,15 @@ print("===========================")
 print("Welcome to Pose Party!")
 name_1 = input("Player 1 Name: ")
 name_2 = input("Player 2 Name: ")
-player_1 = Player(id=1, name=name_1)
-player_2 = Player(id=2, name=name_2)
+player_1 = Player(id=0, name=name_1)
+player_2 = Player(id=1, name=name_2)
 
 game_state = DuelGameState(player_1=player_1, player_2=player_2)
 
 def get_round_actions():
     return [
         TimedAction(
-            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.id}, Get Ready...")
+            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.name}, Get Ready..." + "\n Rounds Won: " + str(game_state))
         ),
         TimedAction(
             # TODO the countdown should start from 3s not 2s so maybe add a second
@@ -32,7 +32,7 @@ def get_round_actions():
             main_action=lambda: game_state.toggle_curr_player()
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.id}, Get Ready...")
+            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.name}, Get Ready...")
         ),
         TimedAction(
             pending_action=lambda: show_countdown_timer(game_state),
@@ -40,7 +40,7 @@ def get_round_actions():
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state, f"Screenshot saved!"),
-            main_action=lambda: save_results()
+            main_action=lambda: save_results(game_state.player_1, game_state.player_2)
             # TODO claire - change this to either let have the text write over the screenshots or merge the screenshots
             # but for now we just reset the screenshots so they aren't in the way
         ),
@@ -65,7 +65,7 @@ def print_score():
 
     return similarity
 
-def save_results():
+def save_results(player1, player2):
     if player_1.screenshot is not None and player_2.screenshot is not None:
         left = player_1.screenshot
         right = player_2.screenshot
@@ -76,6 +76,12 @@ def save_results():
 
     player_1.screenshot = None
     player_2.screenshot = None
+    if game_state.score[0] and game_state.score[1]:
+        if player1 is game_state.curr_player:
+            game_state.score[0] += 1
+        elif player2 is game_state.curr_player:
+            game_state.score[1] += 1
+        game_state.score = [None, None]
 
 # Helper function to reset screenshots
 # TODO: Save pics from rounds somewhere to display in recap
@@ -95,7 +101,7 @@ def reset_for_next_turn():
 
 
 with initialize_landmarker() as landmarker:
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
         success, frame = cap.read()
@@ -114,11 +120,13 @@ with initialize_landmarker() as landmarker:
             write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
         elif game_state.is_game_ended():
             game_state.curr_action = None
-            write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
+            winner = game_state.player_1 if game_state.score[0] > game_state.score[1] else game_state.player_2
+            write_text(game_state, f"GAME OVER! {winner.name} WINS", y=50, centered=True) # TODO change to actual winner
         else:
            color = (255, 0, 0) #BGR
            thickness = 9
            divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
+           write_text(game_state, f"{game_state.curr_player.name} Score " + game_state.curr_player.score, y=50, centered=True) # TODO change to actual winner
 
         if game_state.curr_action is None:
             pass
