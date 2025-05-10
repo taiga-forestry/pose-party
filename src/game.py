@@ -21,6 +21,7 @@ class DuelGameState:
     # history: list[list[]]
     last_frame: Union[MatLike, None] = None
     saved_frame = [defaultdict(dict), defaultdict(dict)]
+    paused: bool = False
 
     def __post_init__(self):
         self.lead_player = self.player_1
@@ -39,3 +40,4 @@ class DuelGameState:
         self.curr_player = self.lead_player
         if self.lead_player is self.player_1:
             self.round += 1
+
