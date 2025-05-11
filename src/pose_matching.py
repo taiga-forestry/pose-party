@@ -70,7 +70,7 @@ def calculate_similarity(game_state, should_log=False):
 
     valid_indices = [
         i for i in SELECTED_JOINTS
-        if joints1[i][3] > 0.85 and joints2[i][3] > 0.85
+        if joints1[i][3] > 0.85 or joints2[i][3] > 0.85
     ]
 
     if not valid_indices:

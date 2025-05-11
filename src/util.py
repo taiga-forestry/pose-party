@@ -3,9 +3,10 @@ from pose_estimation import get_and_save_joints, initialize_landmarker
 
 from game import DuelGameState
 
-def write_text(game_state: DuelGameState, text, y=50, centered=False):
+def write_text(game_state: DuelGameState, text, x=-1, y=50, centered=False):
     frame = game_state.last_frame
-    x = 450 if centered else (30 if game_state.curr_player is game_state.player_1 else 800)
+    if x == -1:
+        x = 450 if centered else (30 if game_state.curr_player is game_state.player_1 else 800)
     
     cv2.putText(
         img=frame,
@@ -18,8 +19,8 @@ def write_text(game_state: DuelGameState, text, y=50, centered=False):
     
 def show_countdown_timer(game_state: DuelGameState):
     # FIXME: better x, y values
-    write_text(game_state, f"Current Player: {game_state.curr_player.name}", 50)
-    write_text(game_state, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", 100)
+    write_text(game_state, f"Current Player: {game_state.curr_player.name}", y=50)
+    write_text(game_state, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", y=100)
 
 def take_screenshot(game_state: DuelGameState):
     frame = game_state.last_frame

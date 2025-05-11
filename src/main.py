@@ -21,7 +21,7 @@ game_state = DuelGameState(player_1=player_1, player_2=player_2)
 def get_round_actions():
     return [
         TimedAction(
-            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.name}, Get Ready..." + "\n Rounds Won: " + str(game_state))
+            pending_action=lambda: display_player_message()
         ),
         TimedAction(
             # TODO the countdown should start from 3s not 2s so maybe add a second
@@ -33,7 +33,7 @@ def get_round_actions():
             main_action=lambda: game_state.toggle_curr_player()
         ),
         TimedAction(
-            pending_action=lambda: write_text(game_state, f"Player {game_state.curr_player.name}, Get Ready...")
+            pending_action=lambda: display_player_message()
         ),
         TimedAction(
             pending_action=lambda: show_countdown_timer(game_state),
@@ -41,7 +41,7 @@ def get_round_actions():
         ),
         TimedAction(
             pending_action=lambda: write_text(game_state, f"Screenshot saved!"),
-            main_action=lambda: save_results(game_state.player_1, game_state.player_2)
+            main_action=lambda: save_results(game_state.player_1, game_state.player_2, True)
             # TODO claire - change this to either let have the text write over the screenshots or merge the screenshots
             # but for now we just reset the screenshots so they aren't in the way
         ),
@@ -57,10 +57,15 @@ def get_round_actions():
   
 actions = get_round_actions()
 
+def display_player_message():
+    write_text(game_state, f"{game_state.curr_player.name.upper()}, Get Ready...")
+
 def save_score_and_swap_players():
-    print(print_score(), game_state.curr_player.name)
-    game_state.score[game_state.curr_player.id] += print_score()
+    # print(print_score(), game_state.curr_player.name)
+    # game_state.curr_player.score += print_score()
     game_state.swap_players()
+    # print("Now the curr player is: ", game_state.curr_player)
+    # print("We are on round ", game_state.round)
 
 def print_score():
     similarity = calculate_similarity(game_state)
@@ -71,7 +76,7 @@ def print_score():
 
     return similarity
 
-def save_results(player1, player2):
+def save_results(player1, player2, update_score):
     if player_1.screenshot is not None and player_2.screenshot is not None:
         left = player_1.screenshot
         right = player_2.screenshot
@@ -82,17 +87,20 @@ def save_results(player1, player2):
 
     player_1.screenshot = None
     player_2.screenshot = None
-    if game_state.score[0] != 0 and game_state.score[1] != 0:
-        print(game_state.score[0], game_state.score[1])
-        if player1 is game_state.curr_player:
-            game_state.score[0] += 1
-        elif player2 is game_state.curr_player:
-            game_state.score[1] += 1
+
+    if update_score:
+        game_state.curr_player.score += round(print_score(), 2)
+    # if game_state.score[0] != 0 and game_state.score[1] != 0:
+    #     print(game_state.score[0], game_state.score[1])
+    #     if player1 is game_state.curr_player:
+    #         game_state.score[0] += 1
+    #     elif player2 is game_state.curr_player:
+    #         game_state.score[1] += 1
 
 # Helper function to reset screenshots
 # TODO: Save pics from rounds somewhere to display in recap
 def reset_for_next_turn():
-    save_results(game_state.player_1, game_state.player_2)
+    save_results(game_state.player_1, game_state.player_2, False)
     if not game_state.is_game_ended():
         global actions
         actions = get_round_actions()
@@ -123,35 +131,40 @@ with initialize_landmarker() as landmarker:
        
         # display loading screen / ending screen
         if not game_state.started:
-            write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), 150)
-        elif game_state.is_game_ended() and not won:
+            write_text(game_state, f"Press 's' to start!", center_text_x(frame, "Press 's' to start!"), y=150)
+        elif game_state.is_game_ended():
             game_state.curr_action = None
-            winner = game_state.player_1 if game_state.score[0] > game_state.score[1] else game_state.player_2
+            winner = game_state.player_1 if game_state.player_1.score > game_state.player_2.score else game_state.player_2
             write_text(game_state, f"GAME OVER! {winner.name} WINS", y=50, centered=True) # TODO change to actual winner
-            print(winner.name)
-            won = True
+            # print(winner.name)
+            won = True # TODO delete
             game_state.score = [0, 0]
 
         else:
-           color = (255, 0, 0) #BGR
-           thickness = 9
-           divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
-           write_text(game_state, f"{game_state.curr_player.name} Score " + str(game_state.curr_player.score), y=50, centered=True) # TODO change to actual winner
+            color = (255, 0, 0) #BGR
+            thickness = 9
+            divider = cv2.line(game_state.last_frame, (w//2, 0), (w//2, h), color, thickness)
 
         if game_state.curr_action is None:
             pass
         elif game_state.curr_action.countdown_complete():
-            game_state.curr_action.main_action()
+            try:
+                game_state.curr_action.main_action()
 
-            # if any more actions remaining, take next one and start it
-            # else, round is over, increment
-            if actions:
-                game_state.curr_action = actions.pop(0)
-                game_state.curr_action.start_timer()
-            else:
-                write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
+                # if any more actions remaining, take next one and start it
+                # else, round is over, increment
+                if actions:
+                    game_state.curr_action = actions.pop(0)
+                    game_state.curr_action.start_timer()
+                else:
+                    write_text(game_state, f"GAME OVER! {game_state.curr_player.id} WINS", y=50, centered=True) # TODO change to actual winner
+            except Exception as e:
+                print("Error: ", e)
         else:
             game_state.curr_action.pending_action()
+
+        write_text(game_state, f"PLAYER 1 SCORE: " + f"{game_state.player_1.score:.2f}", x=30, y=700) 
+        write_text(game_state, f"PLAYER 2 SCORE: " + f"{game_state.player_2.score:.2f}", x=850, y=700) 
 
         #h, w, _ = frame.shape
         left = frame[:, :w//2]
@@ -165,7 +178,7 @@ with initialize_landmarker() as landmarker:
         # if game_state.started:
         #    color = (255, 0, 0) #BGR
         #    thickness = 9
-
+        
         cv2.imshow("Pose Party Screen", display)
 
         # AVAILABLE KEYBOARD INTERACTIONS:
@@ -179,6 +192,7 @@ with initialize_landmarker() as landmarker:
             game_state.started = True
         elif key & 0xFF == ord("q"):
             break
+        
 
 
 
