@@ -143,7 +143,7 @@ with initialize_landmarker() as landmarker:
         elif game_state.is_game_ended():
             game_state.curr_action = None
             winner = game_state.player_1 if game_state.player_1.score > game_state.player_2.score else game_state.player_2
-            write_text(game_state, f"GAME OVER! {winner.name} WINS", y=50, centered=True) # TODO change to actual winner
+            write_text(game_state, f"GAME OVER! {winner.name} WINS!", y=50, centered=True) # TODO change to actual winner
             # print(winner.name)
             won = True # TODO delete
             game_state.score = [0, 0]

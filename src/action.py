@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class TimedAction:
-    duration: int = 3000
+    duration: int = 4000
     pending_action: Callable[[], None] = lambda: None
     main_action: Callable[[], None] = lambda: None
     start_time: int = -1 # Declare when action begins
