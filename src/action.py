@@ -8,6 +8,7 @@ class TimedAction:
     pending_action: Callable[[], None] = lambda: None
     main_action: Callable[[], None] = lambda: None
     start_time: int = -1 # Declare when action begins
+    show_line: bool = False # Indicates if divider should be shown
 
     def countdown_complete(self):
         if self.start_time == -1: 
