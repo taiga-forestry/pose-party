@@ -10,10 +10,22 @@ SELECTED_JOINTS = [
     15, 16,  # wrists
     23, 24,  # hips
     25, 26,  # knees
-    28, 29,  # ankles
+    27, 28,  # ankles
     29, 30,  # heels
     31, 32,  # feet
 ]
+
+JOINT_WEIGHTS = {
+    0: 1.0,     # nose
+    11: 1.0, 12: 1.0,  # shoulders
+    13: 5.0, 14: 5.0,  # elbows
+    15: 7.0, 16: 7.0,  # wrists
+    23: 1.0, 24: 1.0,  # hips
+    25: 7.0, 26: 7.0,  # knees
+    27: 7.0, 28: 7.0,  # ankles
+    29: 5.0, 30: 5.0,  # heel
+    31: 2.0, 32: 2.0,  # feet
+}
 
 def calculate_similarity(game_state, should_log=False):
     joints1, joints2 = game_state.player_1.saved_joints, game_state.player_2.saved_joints
@@ -78,12 +90,13 @@ def calculate_similarity(game_state, should_log=False):
 
     vec1 = np.array([joints1[i][:2] for i in valid_indices])
     vec2 = np.array([(joints2[i][0] - dx, joints2[i][1]) for i in valid_indices])
+    weights = np.array([JOINT_WEIGHTS.get(i, 1.0) for i in valid_indices])
 
     distances = np.linalg.norm(vec1 - vec2, axis=1)
-    mean_distance = np.mean(distances)
+    mean_distance = np.average(distances, weights=weights)
     d = mean_distance
-    d0 = 0.22
-    k = 22
+    d0 = 0.20
+    k = 25
     score = 100 / (1 + np.exp(k * (d - d0)))
 
     # Compute cosine distance

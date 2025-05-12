@@ -20,7 +20,7 @@ def write_text(game_state: DuelGameState, text, x=-1, y=50, centered=False):
 def show_countdown_timer(game_state: DuelGameState):
     # FIXME: better x, y values
     write_text(game_state, f"Current Player: {game_state.curr_player.name}", y=50)
-    write_text(game_state, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000}s", y=100)
+    write_text(game_state, f"Time Remaining: {game_state.curr_action.time_remaining() // 1000 + 1}s", y=100)
 
 def take_screenshot(game_state: DuelGameState):
     frame = game_state.last_frame
