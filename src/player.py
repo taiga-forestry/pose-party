@@ -6,6 +6,7 @@ from typing import Union
 class Player:
   id: int
   name: str
-  score: float = 0.0
+  score: int= 0
   screenshot: Union[MatLike, None] = None
+  saved_joints = None
   
